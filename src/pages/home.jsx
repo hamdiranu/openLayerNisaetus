@@ -49,6 +49,7 @@ import {
 } from 'ol/interaction';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import Geocoder from 'ol-geocoder';
 
 var map;
 var draw;
@@ -196,7 +197,7 @@ class Home extends Component {
   };
 
   componentDidMount = async () => {
-    map = new Map({
+    map = await new Map({
       //  Display the map in the div with the id of map
       target: 'mapContainer',
       interactions: defaultInteractions().extend([select, modify]),
@@ -206,7 +207,31 @@ class Home extends Component {
       // Render the tile layers in a map view with a Mercator projection
       view: mapView,
     });
-    map.on('moveend', this.onMoveEnd);
+    await map.on('moveend', this.onMoveEnd);
+    var geocoder = await new Geocoder('nominatim', {
+      provider: 'osm',
+      lang: 'id',
+      placeholder: 'Search for ...',
+      limit: 5,
+      debug: false,
+      autoComplete: true,
+      keepOpen: true,
+    });
+    await map.addControl(geocoder);
+    geocoder.on('addresschosen', function (evt) {
+      console.log(evt);
+      var myView = new View({
+        projection: 'EPSG:4326',
+        center: [evt.coordinate[0], evt.coordinate[1]],
+        zoom: 12,
+      });
+      map.setView(myView);
+    });
+
+    var a = await document.getElementById('controlSearch');
+    var htmlObject = await document.getElementById('gcd-container');
+
+    await a.appendChild(htmlObject);
   };
 
   onMoveEnd = (evt) => {
@@ -1115,6 +1140,7 @@ class Home extends Component {
               >
                 <span className='cancelClick'>Cancel</span>
               </div>
+              <div id='controlSearch'></div>
             </div>
           </Grid.Column>{' '}
           <Grid.Column className='colCode' width={4}>
