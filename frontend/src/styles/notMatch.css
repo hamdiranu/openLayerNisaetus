@@ -1,0 +1,21 @@
+.notMatch {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.notMatch img {
+  border: solid 2px rgb(230, 230, 230);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.notMatch h1 {
+  font-size: xx-large;
+  font-weight: bold;
+}
+
+.notMatch a {
+  text-decoration: none;
+  transition: 0.2s;
+}
