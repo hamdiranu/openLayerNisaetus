@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'unistore/react';
 import { actions } from '../store';
-// import axios from 'axios';
+import axios from 'axios';
 import { Grid, Input, Form, Button, Modal, Icon } from 'semantic-ui-react';
 import { Navbar, Nav, Button as ReactButton } from 'react-bootstrap';
 import '../styles/testPage.css';
@@ -58,6 +58,7 @@ var layer = new TileLayer({
   source: new XYZSource({
     url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     projection: 'EPSG:3857',
+    crossOrigin: 'anonymous',
   }),
 });
 
@@ -297,9 +298,11 @@ class Home extends Component {
       18,
       19,
       20,
+      21,
+      22,
     ];
     if (!(this.state.inputZoom in zoomOption)) {
-      swal('Error!', 'input zoom level hanya dalam interval 0-19', 'warning');
+      swal('Error!', 'input zoom level hanya dalam interval 0-22', 'warning');
     } else {
       var myView = new View({
         projection: 'EPSG:4326',
@@ -314,6 +317,7 @@ class Home extends Component {
   handleChangeLayerOSM = (e) => {
     var newLayer = new XYZSource({
       url: 'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      crossOrigin: 'anonymous',
     });
     layer.setSource(newLayer);
     this.setState({
@@ -325,6 +329,7 @@ class Home extends Component {
   handleChangeLayerGMaps = async (e) => {
     var newLayer = new XYZSource({
       url: 'http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga',
+      crossOrigin: 'anonymous',
     });
     layer.setSource(newLayer);
     this.setState({
@@ -337,6 +342,7 @@ class Home extends Component {
     var newLayer = new XYZSource({
       url:
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
+      crossOrigin: 'anonymous',
     });
     layer.setSource(newLayer);
     this.setState({
@@ -349,6 +355,7 @@ class Home extends Component {
     var newLayer = new XYZSource({
       url:
         'https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+      crossOrigin: 'anonymous',
     });
     layer.setSource(newLayer);
     this.setState({
@@ -360,6 +367,7 @@ class Home extends Component {
   handleChangeLayerCartoGs = async (e) => {
     var newLayer = new XYZSource({
       url: 'https://basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
+      crossOrigin: 'anonymous',
     });
     layer.setSource(newLayer);
     this.setState({
@@ -484,6 +492,235 @@ class Home extends Component {
     this.setState({
       onDrawing: 'None',
     });
+  };
+
+  // Fungsi untuk mengeluarkan alert input nama file
+  handleFailedDownload = (event) => {
+    swal('Error!', 'Mohon isi nama file terlebih dahulu!', 'warning');
+  };
+
+  // Fungsi untuk menutup modal export GeoJSON/Maps
+  closeModal = () => {
+    this.setState({
+      openModalGeojson: false,
+      openModalMaps: false,
+      openModalInputProcess: false,
+    });
+  };
+
+  // Fungsi untuk mengeluarkan modal export Maps
+  showModalMaps = async () => {
+    await this.setState({ openModalMaps: true });
+  };
+
+  // Fungsi untuk mendapatkan data inputan nama file GeoTiff
+  changeNamaGeoTiff = async (event) => {
+    await this.setState({
+      namaFileGeoTiff: event.target.value,
+    });
+  };
+
+  // Fungsi untuk mendownload file GeoTiff
+  handleDownloadGeoTiff = async () => {
+    var namaFile = this.state.namaFileGeoTiff;
+    map.once('rendercomplete', function () {
+      console.log('cek nama', namaFile);
+      var mapCanvas = document.createElement('canvas');
+      var size = map.getSize();
+      mapCanvas.width = size[0];
+      mapCanvas.height = size[1];
+      var mapContext = mapCanvas.getContext('2d');
+      Array.prototype.forEach.call(
+        document.querySelectorAll('.ol-layer canvas'),
+        function (canvas) {
+          if (canvas.width > 0) {
+            var opacity = canvas.parentNode.style.opacity;
+            mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+            var transform = canvas.style.transform;
+            // Get the transform parameters from the style's transform matrix
+            var matrix = transform
+              .match(/^matrix\(([^(]*)\)$/)[1]
+              .split(',')
+              .map(Number);
+            // Apply the transform to the export map context
+            CanvasRenderingContext2D.prototype.setTransform.apply(
+              mapContext,
+              matrix
+            );
+            mapContext.drawImage(canvas, 0, 0);
+          }
+        }
+      );
+      if (navigator.msSaveBlob) {
+        // link download attribuute does not work on MS browsers
+        navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
+      } else {
+        console.log('cek link', mapCanvas.toDataURL());
+        var a = document.createElement('a'); //Create <a>
+        a.href = mapCanvas.toDataURL(); //Image Base64 Goes here
+        a.download = namaFile + '.png'; //File name Here
+        a.click(); //Downloaded file
+      }
+    });
+    map.renderSync();
+
+    // Fungsi untuk download map center info dalam format json
+    const json = await JSON.stringify(this.state.mapCenter, null, '  ');
+    const blob = await new Blob([json], {
+      type: 'application/json',
+    });
+    const href = await URL.createObjectURL(blob);
+    const linkJson = await document.createElement('a');
+    linkJson.href = href;
+    linkJson.download = this.state.namaFileGeoTiff + '.json';
+    document.body.appendChild(linkJson);
+    linkJson.click();
+    document.body.removeChild(linkJson);
+
+    await this.setState({
+      openModalMaps: false,
+    });
+  };
+
+  // Fungsi untuk melakukan Direct Image Processing
+  handleImageProcess = async () => {
+    this.setState({
+      imageProcessing: true,
+    });
+
+    var base64Image = await '';
+
+    var mapCanvas = await document.createElement('canvas');
+    var size = await map.getSize();
+    mapCanvas.width = await size[0];
+    mapCanvas.height = await size[1];
+    var mapContext = await mapCanvas.getContext('2d');
+    await Array.prototype.forEach.call(
+      document.querySelectorAll('.ol-layer canvas'),
+      function (canvas) {
+        if (canvas.width > 0) {
+          var opacity = canvas.parentNode.style.opacity;
+          mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+          var transform = canvas.style.transform;
+          // Get the transform parameters from the style's transform matrix
+          var matrix = transform
+            .match(/^matrix\(([^(]*)\)$/)[1]
+            .split(',')
+            .map(Number);
+          // Apply the transform to the export map context
+          CanvasRenderingContext2D.prototype.setTransform.apply(
+            mapContext,
+            matrix
+          );
+          mapContext.drawImage(canvas, 0, 0);
+        }
+      }
+    );
+    if (navigator.msSaveBlob) {
+      // link download attribuute does not work on MS browsers
+      await navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
+    } else {
+      // console.log('cek link', mapCanvas.toDataURL());
+      base64Image = await mapCanvas.toDataURL();
+    }
+
+    await console.log('base64', base64Image);
+
+    await axios
+      .post(
+        'https://nisaetus-api.sumpahpalapa.com/api/v1/geo/building-locator',
+        {
+          map_type: this.state.mapCenter.map_type,
+          image_base64: base64Image,
+          coordinates: {
+            latitude_min: this.state.mapCenter.latitude_min,
+            latitude_max: this.state.mapCenter.latitude_max,
+            longitude_min: this.state.mapCenter.longitude_min,
+            longitude_max: this.state.mapCenter.longitude_max,
+            zoom: this.state.mapCenter.zoom,
+            center: {
+              latitude: this.state.mapCenter.center.latitude,
+              longitude: this.state.mapCenter.center.longitude,
+            },
+          },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      .then(async (response) => {
+        console.log('respon', response.data.data);
+        var newListFeature = await this.state.geojsonfile.features;
+
+        await this.setState({
+          dataImportGeojson: response.data.data,
+          updateGeojson: true,
+          imageProcessing: false,
+          showSnakeBar: true,
+        });
+
+        var newFeatures = await new GeoJSON().readFeatures(response.data.data, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:4326',
+        });
+
+        for (let h = 0; h < newFeatures.length; h++) {
+          await vectorSource.addFeature(newFeatures[h]);
+        }
+
+        for (let j = 0; j < response.data.data.features.length; j++) {
+          await newListFeature.push(response.data.data.features[j]);
+        }
+
+        await this.setState({
+          dataImportGeojson: response.data.data,
+          geojsonfile: {
+            type: 'FeatureCollection',
+            features: newListFeature,
+          },
+          updateGeojson: true,
+          imageProcessing: false,
+          showSnakeBar: true,
+        });
+
+        await setTimeout(() => {
+          this.setState({ showSnakeBar: false });
+        }, 2000);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  // Fungsi untuk mengeluarkan modal export GeoJSON
+  showModalGeo = () => {
+    this.setState({ openModalGeojson: true });
+  };
+
+  // Fungsi untuk mendapatkan data inputan nama file geojson
+  changeNamaGeojson = async (event) => {
+    await this.setState({
+      namaFileGeojson: event.target.value,
+    });
+  };
+
+  // Fungsi untuk mendownload file geojson
+  handleDownloadGeo = async (event) => {
+    const fileName = await this.state.namaFileGeojson;
+    const json = await JSON.stringify(this.state.geojsonfile, null, '  ');
+    const blob = await new Blob([json], {
+      type: 'application/json',
+    });
+    const href = await URL.createObjectURL(blob);
+    const link = await document.createElement('a');
+    link.href = href;
+    link.download = fileName + '.geojson';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    await this.setState({ openModalGeojson: false });
   };
 
   render() {
@@ -842,7 +1079,6 @@ class Home extends Component {
                         <ReactButton
                           className='buttonLoadingProcess'
                           variant='outline-secondary'
-                          onClick={this.handleImageProcess}
                         >
                           <img
                             src={LoadingLogo}
