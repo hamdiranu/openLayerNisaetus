@@ -226,6 +226,7 @@ class Home extends Component {
         zoom: 12,
       });
       map.setView(myView);
+      geocoder.getSource().clear();
     });
 
     var a = await document.getElementById('controlSearch');
