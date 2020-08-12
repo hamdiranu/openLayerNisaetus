@@ -653,3 +653,30 @@ i.inverted.circular.icon.notValidDownload:hover {
   top: -50px;
   left: 20px;
 }
+
+.ol-geocoder ul.gcd-gl-result>li>a {
+  display: block;
+  text-decoration: none;
+  padding: 5px 10px;
+}
+
+.ol-geocoder ul.gcd-gl-result {
+  position: absolute;
+  top: 35px;
+  left: 32px;
+  width: 16.25em;
+  max-height: 18.75em;
+  white-space: normal;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: #fff;
+  border-radius: 5px;
+  border-top: none;
+  border-top-left-radius: 5;
+  border-top-right-radius: 5px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-shadow: 0 1px 7px rgba(0, 0, 0, .8);
+  transition: max-height .3s ease-in;
+}
