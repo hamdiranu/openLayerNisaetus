@@ -654,13 +654,6 @@ class Home extends Component {
         console.log('respon', response.data.data);
         var newListFeature = await this.state.geojsonfile.features;
 
-        await this.setState({
-          dataImportGeojson: response.data.data,
-          updateGeojson: true,
-          imageProcessing: false,
-          showSnakeBar: true,
-        });
-
         var newFeatures = await new GeoJSON().readFeatures(response.data.data, {
           dataProjection: 'EPSG:4326',
           featureProjection: 'EPSG:4326',
@@ -721,6 +714,205 @@ class Home extends Component {
     link.click();
     document.body.removeChild(link);
     await this.setState({ openModalGeojson: false });
+  };
+
+  // Fungsi untuk mengeluarkan modal Image Processing with input
+  showModalInputProcess = () => {
+    this.setState({ openModalInputProcess: true });
+  };
+
+  // Fungsi untuk input map Image (PNG)
+  getInputMapImage = async () => {
+    var input, file, fr;
+
+    input = await document.getElementById('inputMap');
+
+    file = await input.files[0];
+
+    await this.setState({
+      namaFilePng: file.name,
+    });
+
+    fr = await new FileReader();
+    await fr.readAsDataURL(file);
+    fr.onload = await this.receivedMap;
+  };
+
+  // Bagian dari fungsi untuk input data map image (PNG)
+  receivedMap = async (e) => {
+    await this.setState({
+      inputBase64: e.target.result,
+    });
+  };
+
+  // Fungsi untuk mereset input center map image (PNG)
+  handleResetInputMap = async () => {
+    await this.setState({
+      namaFilePng: '',
+      inputBase64: '',
+    });
+  };
+
+  // Fungsi untuk input data map center (JSON)
+  getInputMapJson = async () => {
+    var input, file, fr;
+
+    input = await document.getElementById('inputMapDetails');
+
+    file = await input.files[0];
+
+    await this.setState({
+      namaFileJson: file.name,
+    });
+
+    fr = await new FileReader();
+    fr.onload = await this.receivedJson;
+    await fr.readAsText(file);
+  };
+
+  // Bagian dari fungsi untuk input data map center (JSON)
+  receivedJson = async (e) => {
+    let lines = await e.target.result; // type = String
+    var newArr = await JSON.parse(lines); // convert string to JSON
+
+    var myView = await new View({
+      projection: 'EPSG:4326',
+      center: [newArr.center.longitude, newArr.center.latitude],
+      zoom: newArr.zoom,
+    });
+    await map.setView(myView);
+
+    await this.setState({
+      inputCenterJson: newArr,
+      mapTileLayer: newArr.map_type,
+    });
+
+    var newLayer;
+
+    if (this.state.mapTileLayer === 'osm') {
+      newLayer = new XYZSource({
+        url: 'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        crossOrigin: 'anonymous',
+      });
+      layer.setSource(newLayer);
+      this.setState({
+        mapTileLayer: 'osm',
+      });
+    } else if (this.state.mapTileLayer === 'satellite') {
+      newLayer = new XYZSource({
+        url:
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
+        crossOrigin: 'anonymous',
+      });
+      layer.setSource(newLayer);
+      this.setState({
+        mapTileLayer: 'satellite',
+      });
+    } else if (this.state.mapTileLayer === 'google') {
+      newLayer = new XYZSource({
+        url: 'http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga',
+        crossOrigin: 'anonymous',
+      });
+      layer.setSource(newLayer);
+      this.setState({
+        mapTileLayer: 'google',
+      });
+    } else if (this.state.mapTileLayer === 'carto') {
+      newLayer = new XYZSource({
+        url:
+          'https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+        crossOrigin: 'anonymous',
+      });
+      layer.setSource(newLayer);
+      this.setState({
+        mapTileLayer: 'carto',
+      });
+    } else if (this.state.mapTileLayer === 'carto_gs') {
+      newLayer = new XYZSource({
+        url: 'https://basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
+        crossOrigin: 'anonymous',
+      });
+      layer.setSource(newLayer);
+      this.setState({
+        mapTileLayer: 'carto_gs',
+      });
+    }
+  };
+
+  // Fungsi untuk mereset input center map (JSON)
+  handleResetInputJson = async () => {
+    await this.setState({
+      namaFileJson: '',
+      inputCenterJson: {},
+    });
+  };
+
+  // Fungsi untuk melakukan Image Processing with input
+  handleProcessInput = async () => {
+    this.setState({
+      imageProcessing: true,
+    });
+
+    await axios
+      .post(
+        'https://nisaetus-api.sumpahpalapa.com/api/v1/geo/building-locator',
+        {
+          map_type: this.state.inputCenterJson.map_type,
+          image_base64: this.state.inputBase64,
+          coordinates: {
+            latitude_min: this.state.inputCenterJson.latitude_min,
+            latitude_max: this.state.inputCenterJson.latitude_max,
+            longitude_min: this.state.inputCenterJson.longitude_min,
+            longitude_max: this.state.inputCenterJson.longitude_max,
+            zoom: this.state.inputCenterJson.zoom,
+            center: {
+              latitude: this.state.inputCenterJson.center.latitude,
+              longitude: this.state.inputCenterJson.center.longitude,
+            },
+          },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      .then(async (response) => {
+        console.log('respon', response.data.data);
+        var newListFeature = await this.state.geojsonfile.features;
+
+        var newFeatures = await new GeoJSON().readFeatures(response.data.data, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:4326',
+        });
+
+        for (let h = 0; h < newFeatures.length; h++) {
+          await vectorSource.addFeature(newFeatures[h]);
+        }
+
+        for (let j = 0; j < response.data.data.features.length; j++) {
+          await newListFeature.push(response.data.data.features[j]);
+        }
+
+        await this.setState({
+          dataImportGeojson: response.data.data,
+          geojsonfile: {
+            type: 'FeatureCollection',
+            features: newListFeature,
+          },
+          updateGeojson: true,
+          imageProcessing: false,
+          showSnakeBar: true,
+          openModalInputProcess: false,
+        });
+
+        await setTimeout(() => {
+          this.setState({ showSnakeBar: false });
+        }, 2000);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   render() {

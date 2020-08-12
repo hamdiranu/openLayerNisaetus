@@ -154,7 +154,13 @@ i.inverted.circular.icon.notValidDownload:hover {
 
 .eWkWwl {
   z-index: 1001 !important;
-  bottom: 84vh !important;
+  bottom: 83vh !important;
+  left: -20vw !important;
+}
+
+.equdlk {
+  z-index: 1001 !important;
+  bottom: 83vh !important;
   left: -20vw !important;
 }
 
@@ -272,8 +278,8 @@ i.inverted.circular.icon.notValidDownload:hover {
   position: absolute;
   height: 30px;
   width: 80px;
-  top: 85px;
-  right: 42px;
+  top: 101px;
+  right: 48px;
   text-align: center;
   background-color: #919187;
   padding: 4px;
@@ -296,8 +302,8 @@ i.inverted.circular.icon.notValidDownload:hover {
   position: absolute;
   height: 30px;
   width: 80px;
-  top: 116.5px;
-  right: 42px;
+  top: 132.5px;
+  right: 48px;
   text-align: center;
   background-color: #919187;
   padding: 4px;
@@ -320,8 +326,8 @@ i.inverted.circular.icon.notValidDownload:hover {
   position: absolute;
   height: 30px;
   width: 80px;
-  top: 147.5px;
-  right: 42px;
+  top: 163.5px;
+  right: 48px;
   text-align: center;
   background-color: #919187;
   padding: 4px;
@@ -344,8 +350,8 @@ i.inverted.circular.icon.notValidDownload:hover {
   position: absolute;
   height: 30px;
   width: 80px;
-  top: 178.5px;
-  right: 42px;
+  top: 194.5px;
+  right: 48px;
   text-align: center;
   background-color: #919187;
   padding: 4px;
