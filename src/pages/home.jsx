@@ -490,8 +490,11 @@ class Home extends Component {
   handleCancelDraw = () => {
     map.removeInteraction(draw);
     this.setState({
-      onDrawing: 'None',
+      onDrawing: this.state.onDrawing + 'Dis',
     });
+    setTimeout(() => {
+      this.setState({ onDrawing: 'None' });
+    }, 2000);
   };
 
   // Fungsi untuk mengeluarkan alert input nama file
