@@ -52,6 +52,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import Geocoder from 'ol-geocoder';
 import OSM from 'ol/source/OSM';
+import { click } from 'ol/events/condition';
 
 var map;
 var draw;
@@ -70,6 +71,7 @@ var mapView = new View({
 var select = new Select({
   wrapX: false,
 });
+
 var modify = new Modify({
   features: select.getFeatures(),
 });
@@ -195,6 +197,7 @@ class Home extends Component {
     mapCenter: {},
     onDrawing: 'None',
     deleteProgress: 'offDelete',
+    selectedFeature: '',
   };
 
   componentDidMount = async () => {
@@ -222,6 +225,10 @@ class Home extends Component {
       keepOpen: true,
     });
     await map.addControl(geocoder);
+
+    // select.on('select', function (e) {
+    //   console.log('select', e.target);
+    // });
 
     geocoder.on('addresschosen', function (evt) {
       var myView = new View({
@@ -959,10 +966,66 @@ class Home extends Component {
   // Fungsi untuk membuka fitur delete layer
   handleDelteControl = () => {
     map.removeInteraction(draw);
+    map.removeInteraction(select);
     this.setState({
       deleteProgress: 'onDelete',
       onDrawing: 'None',
     });
+    var newThis = this;
+    // select interaction working on "click"
+    select = new Select({
+      condition: click,
+    });
+    map.addInteraction(select);
+    select.on('select', function (event) {
+      newThis.setState({
+        selectedFeature: event.selected[0],
+      });
+    });
+  };
+
+  // Fungsi untuk mendelete suatu layer
+  handleSingleDelete = async () => {
+    if (this.state.selectedFeature !== '') {
+      await vector.getSource().removeFeature(this.state.selectedFeature);
+      await map.removeInteraction(select);
+      // select interaction working on "click"
+      select = await new Select({
+        condition: click,
+      });
+      await map.addInteraction(select);
+      await this.setState({
+        selectedFeature: '',
+      });
+      var writer = await new GeoJSON();
+      var updatedGeoJSON = await [];
+
+      for (let k = 0; k < vectorSource.getFeatures().length; k++) {
+        var arrayCurrentFeature = await JSON.parse(
+          writer.writeFeatures([vectorSource.getFeatures()[k]])
+        );
+        if (
+          arrayCurrentFeature.features[0].geometry.type !== 'GeometryCollection'
+        ) {
+          var updatedFeature = await {
+            type: arrayCurrentFeature.features[0].type,
+            properties: {},
+            geometry: {
+              type: arrayCurrentFeature.features[0].geometry.type,
+              coordinates: arrayCurrentFeature.features[0].geometry.coordinates,
+            },
+          };
+          await updatedGeoJSON.push(updatedFeature);
+        }
+      }
+
+      await this.setState({
+        geojsonfile: {
+          type: 'FeatureCollection',
+          features: updatedGeoJSON,
+        },
+      });
+    }
   };
 
   // Fungsi untuk menutup fitur delete layer
@@ -973,6 +1036,11 @@ class Home extends Component {
     setTimeout(() => {
       this.setState({ deleteProgress: 'offDelete' });
     }, 1000);
+
+    select = new Select({
+      wrapX: false,
+    });
+    map.addInteraction(select);
   };
 
   // Fungsi untuk mendelete semua feature
@@ -1654,7 +1722,11 @@ class Home extends Component {
               </div>
               {/* Cancel ControlBar untuk delete layer */}
               <div className={this.state.deleteProgress} title='cancel delete'>
-                <div className='deleteSingleLayer' title='Delete single layer'>
+                <div
+                  className='deleteSingleLayer'
+                  title='Delete single layer'
+                  onClick={this.handleSingleDelete}
+                >
                   <span>Delete</span>
                 </div>
                 <div
