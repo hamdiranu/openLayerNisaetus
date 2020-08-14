@@ -1037,6 +1037,8 @@ class Home extends Component {
       this.setState({ deleteProgress: 'offDelete' });
     }, 1000);
 
+    map.removeInteraction(select);
+
     select = new Select({
       wrapX: false,
     });
@@ -1046,12 +1048,23 @@ class Home extends Component {
   // Fungsi untuk mendelete semua feature
   handleDeleteAll = async () => {
     await vectorSource.clear();
+    setTimeout(async () => {
+      await this.setState({ deleteProgress: 'offDelete' });
+    }, 1000);
     await this.setState({
       geojsonfile: {
         type: 'FeatureCollection',
         features: [],
       },
+      deleteProgress: 'onDeleteDis',
     });
+
+    await map.removeInteraction(select);
+
+    select = await new Select({
+      wrapX: false,
+    });
+    await map.addInteraction(select);
   };
 
   render() {
