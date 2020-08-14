@@ -478,6 +478,7 @@ class Home extends Component {
     await map.setView(myView);
   };
 
+  // Fungsi untuk menggambar feature pada map
   handleDrawControl = async (value) => {
     map.removeInteraction(draw);
     if (value !== 'None') {
@@ -520,6 +521,7 @@ class Home extends Component {
     }
   };
 
+  // Fungsi untuk mengcancel mode draw
   handleCancelDraw = () => {
     map.removeInteraction(draw);
     this.setState({
@@ -954,6 +956,7 @@ class Home extends Component {
       });
   };
 
+  // Fungsi untuk membuka fitur delete layer
   handleDelteControl = () => {
     map.removeInteraction(draw);
     this.setState({
@@ -962,6 +965,7 @@ class Home extends Component {
     });
   };
 
+  // Fungsi untuk menutup fitur delete layer
   handleCancelDelete = () => {
     this.setState({
       deleteProgress: 'onDeleteDis',
@@ -971,6 +975,7 @@ class Home extends Component {
     }, 1000);
   };
 
+  // Fungsi untuk mendelete semua feature
   handleDeleteAll = async () => {
     await vectorSource.clear();
     await this.setState({
