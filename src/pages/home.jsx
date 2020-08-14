@@ -50,22 +50,20 @@ import {
 import GeoJSON from 'ol/format/GeoJSON';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import Geocoder from 'ol-geocoder';
+import OSM from 'ol/source/OSM';
 
 var map;
 var draw;
 
 var layer = new TileLayer({
-  source: new XYZSource({
-    url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    projection: 'EPSG:3857',
-    crossOrigin: 'anonymous',
-  }),
+  source: new OSM(),
 });
 
 var mapView = new View({
   projection: 'EPSG:4326',
   center: [117.50976562500001, -2.5040852618529215],
   zoom: 5,
+  maxZoom: 22,
 });
 
 var select = new Select({
@@ -208,7 +206,10 @@ class Home extends Component {
       // Render the tile layers in a map view with a Mercator projection
       view: mapView,
     });
+
     await map.on('moveend', this.onMoveEnd);
+
+    // Fitur Box Search location
     var geocoder = await new Geocoder('nominatim', {
       provider: 'osm',
       lang: 'id',
@@ -219,12 +220,13 @@ class Home extends Component {
       keepOpen: true,
     });
     await map.addControl(geocoder);
+
     geocoder.on('addresschosen', function (evt) {
-      console.log(evt);
       var myView = new View({
         projection: 'EPSG:4326',
         center: [evt.coordinate[0], evt.coordinate[1]],
         zoom: 12,
+        maxZoom: 22,
       });
       map.setView(myView);
       geocoder.getSource().clear();
@@ -232,12 +234,52 @@ class Home extends Component {
 
     var a = await document.getElementById('controlSearch');
     var htmlObject = await document.getElementById('gcd-container');
-
     await a.appendChild(htmlObject);
+
+    // Fitur Edit Polygon
+    var newThis = await this;
+    await modify.on('modifyend', async function (e) {
+      var writer = await new GeoJSON();
+      var updatedGeoJSON = await [];
+
+      for (let k = 0; k < vectorSource.getFeatures().length; k++) {
+        var arrayCurrentFeature = await JSON.parse(
+          writer.writeFeatures([vectorSource.getFeatures()[k]])
+        );
+        if (
+          arrayCurrentFeature.features[0].geometry.type !== 'GeometryCollection'
+        ) {
+          var updatedFeature = await {
+            type: arrayCurrentFeature.features[0].type,
+            properties: {},
+            geometry: {
+              type: arrayCurrentFeature.features[0].geometry.type,
+              coordinates: arrayCurrentFeature.features[0].geometry.coordinates,
+            },
+          };
+          await updatedGeoJSON.push(updatedFeature);
+        }
+      }
+
+      await newThis.setState({
+        geojsonfile: {
+          type: 'FeatureCollection',
+          features: updatedGeoJSON,
+        },
+      });
+    });
   };
 
   onMoveEnd = (evt) => {
     var map = evt.map;
+    var myView = new View({
+      projection: 'EPSG:4326',
+      center: [map.getView().getCenter()[0], map.getView().getCenter()[1]],
+      zoom: Math.floor(map.getView().getZoom()),
+      maxZoom: 22,
+    });
+    map.setView(myView);
+
     var extent = map.getView().calculateExtent(map.getSize());
     var mapCenterInfo = {
       map_type: this.state.mapTileLayer,
@@ -276,38 +318,14 @@ class Home extends Component {
   // Fungsi untuk redirect map ke LatLong yang diinginkan
   handleSubmit = (event) => {
     event.preventDefault();
-    var zoomOption = [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19,
-      20,
-      21,
-      22,
-    ];
-    if (!(this.state.inputZoom in zoomOption)) {
+    if (this.state.inputZoom > 22 || this.state.inputZoom < 0) {
       swal('Error!', 'input zoom level hanya dalam interval 0-22', 'warning');
     } else {
       var myView = new View({
         projection: 'EPSG:4326',
         center: [this.state.inputLong, this.state.inputLat],
         zoom: this.state.inputZoom,
+        maxZoom: 22,
       });
       map.setView(myView);
     }
@@ -315,10 +333,7 @@ class Home extends Component {
 
   // Fungsi untuk mengganti tile layer menjadi OSM
   handleChangeLayerOSM = (e) => {
-    var newLayer = new XYZSource({
-      url: 'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      crossOrigin: 'anonymous',
-    });
+    var newLayer = new OSM();
     layer.setSource(newLayer);
     this.setState({
       mapTileLayer: 'osm',
@@ -330,6 +345,7 @@ class Home extends Component {
     var newLayer = new XYZSource({
       url: 'http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga',
       crossOrigin: 'anonymous',
+      maxZoom: 22,
     });
     layer.setSource(newLayer);
     this.setState({
@@ -343,6 +359,7 @@ class Home extends Component {
       url:
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
       crossOrigin: 'anonymous',
+      maxZoom: 22,
     });
     layer.setSource(newLayer);
     this.setState({
@@ -356,6 +373,7 @@ class Home extends Component {
       url:
         'https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
       crossOrigin: 'anonymous',
+      maxZoom: 22,
     });
     layer.setSource(newLayer);
     this.setState({
@@ -368,26 +386,12 @@ class Home extends Component {
     var newLayer = new XYZSource({
       url: 'https://basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
       crossOrigin: 'anonymous',
+      maxZoom: 22,
     });
     layer.setSource(newLayer);
     this.setState({
       mapTileLayer: 'carto_gs',
     });
-  };
-
-  handleTypeSelect = (event) => {
-    map.removeInteraction(draw);
-    var value = event.target.value;
-    if (value !== 'None') {
-      draw = new Draw({
-        source: vectorSource,
-        type: value,
-      });
-      draw.on('drawend', function (e) {
-        console.log('cek draw', e.feature.getGeometry());
-      });
-      map.addInteraction(draw);
-    }
   };
 
   // Fungsi untuk mengimport data geojson ke map
@@ -466,19 +470,45 @@ class Home extends Component {
       projection: 'EPSG:4326',
       center: [this.state.inputLong, this.state.inputLat],
       zoom: zoomCenter,
+
+      maxZoom: 22,
     });
     await map.setView(myView);
   };
 
-  handleDrawControl = (value) => {
+  handleDrawControl = async (value) => {
     map.removeInteraction(draw);
     if (value !== 'None') {
+      var oldGeojson = this.state.geojsonfile.features;
+      var newthis = this;
       draw = new Draw({
         source: vectorSource,
         type: value,
       });
-      draw.on('drawend', function (e) {
-        console.log('cek draw', e.feature.getGeometry());
+      draw.on('drawend', async function (e) {
+        if (value !== 'Circle') {
+          var writer = await new GeoJSON();
+          //pass the feature as an array
+          var geojsonStr = await writer.writeFeatures([e.feature]);
+          await console.log('ondraw end', vectorSource.getFeatures());
+          var newFeature = await {
+            type: JSON.parse(geojsonStr).features[0].type,
+            properties: {},
+            geometry: {
+              type: JSON.parse(geojsonStr).features[0].geometry.type,
+              coordinates: JSON.parse(geojsonStr).features[0].geometry
+                .coordinates,
+            },
+          };
+
+          await oldGeojson.push(newFeature);
+          await newthis.setState({
+            geojsonfile: {
+              type: 'FeatureCollection',
+              features: oldGeojson,
+            },
+          });
+        }
       });
       map.addInteraction(draw);
       this.setState({
@@ -513,6 +543,14 @@ class Home extends Component {
 
   // Fungsi untuk mengeluarkan modal export Maps
   showModalMaps = async () => {
+    var myView = await new View({
+      projection: 'EPSG:4326',
+      center: [this.state.inputLong, this.state.inputLat],
+      zoom: Math.floor(this.state.inputZoom),
+
+      maxZoom: 22,
+    });
+    await map.setView(myView);
     await this.setState({ openModalMaps: true });
   };
 
@@ -527,7 +565,6 @@ class Home extends Component {
   handleDownloadGeoTiff = async () => {
     var namaFile = this.state.namaFileGeoTiff;
     map.once('rendercomplete', function () {
-      console.log('cek nama', namaFile);
       var mapCanvas = document.createElement('canvas');
       var size = map.getSize();
       mapCanvas.width = size[0];
@@ -558,7 +595,6 @@ class Home extends Component {
         // link download attribuute does not work on MS browsers
         navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
       } else {
-        console.log('cek link', mapCanvas.toDataURL());
         var a = document.createElement('a'); //Create <a>
         a.href = mapCanvas.toDataURL(); //Image Base64 Goes here
         a.download = namaFile + '.png'; //File name Here
@@ -587,18 +623,18 @@ class Home extends Component {
 
   // Fungsi untuk melakukan Direct Image Processing
   handleImageProcess = async () => {
-    this.setState({
+    await this.setState({
       imageProcessing: true,
     });
 
     var base64Image = await '';
 
-    var mapCanvas = await document.createElement('canvas');
-    var size = await map.getSize();
-    mapCanvas.width = await size[0];
-    mapCanvas.height = await size[1];
-    var mapContext = await mapCanvas.getContext('2d');
-    await Array.prototype.forEach.call(
+    var mapCanvas = document.createElement('canvas');
+    var size = map.getSize();
+    mapCanvas.width = size[0];
+    mapCanvas.height = size[1];
+    var mapContext = mapCanvas.getContext('2d');
+    Array.prototype.forEach.call(
       document.querySelectorAll('.ol-layer canvas'),
       function (canvas) {
         if (canvas.width > 0) {
@@ -621,13 +657,10 @@ class Home extends Component {
     );
     if (navigator.msSaveBlob) {
       // link download attribuute does not work on MS browsers
-      await navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
+      navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
     } else {
-      // console.log('cek link', mapCanvas.toDataURL());
-      base64Image = await mapCanvas.toDataURL();
+      base64Image = mapCanvas.toDataURL();
     }
-
-    await console.log('base64', base64Image);
 
     await axios
       .post(
@@ -654,7 +687,6 @@ class Home extends Component {
         }
       )
       .then(async (response) => {
-        console.log('respon', response.data.data);
         var newListFeature = await this.state.geojsonfile.features;
 
         var newFeatures = await new GeoJSON().readFeatures(response.data.data, {
@@ -782,6 +814,8 @@ class Home extends Component {
       projection: 'EPSG:4326',
       center: [newArr.center.longitude, newArr.center.latitude],
       zoom: newArr.zoom,
+
+      maxZoom: 22,
     });
     await map.setView(myView);
 
@@ -881,7 +915,6 @@ class Home extends Component {
         }
       )
       .then(async (response) => {
-        console.log('respon', response.data.data);
         var newListFeature = await this.state.geojsonfile.features;
 
         var newFeatures = await new GeoJSON().readFeatures(response.data.data, {
