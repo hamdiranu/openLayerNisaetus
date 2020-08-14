@@ -226,10 +226,6 @@ class Home extends Component {
     });
     await map.addControl(geocoder);
 
-    // select.on('select', function (e) {
-    //   console.log('select', e.target);
-    // });
-
     geocoder.on('addresschosen', function (evt) {
       var myView = new View({
         projection: 'EPSG:4326',
@@ -500,7 +496,6 @@ class Home extends Component {
           var writer = await new GeoJSON();
           //pass the feature as an array
           var geojsonStr = await writer.writeFeatures([e.feature]);
-          await console.log('ondraw end', vectorSource.getFeatures());
           var newFeature = await {
             type: JSON.parse(geojsonStr).features[0].type,
             properties: {},
@@ -969,8 +964,13 @@ class Home extends Component {
     map.removeInteraction(select);
     this.setState({
       deleteProgress: 'onDelete',
-      onDrawing: 'None',
     });
+    this.setState({
+      onDrawing: this.state.onDrawing + 'Dis',
+    });
+    setTimeout(() => {
+      this.setState({ onDrawing: 'None' });
+    }, 1000);
     var newThis = this;
     // select interaction working on "click"
     select = new Select({
@@ -986,6 +986,7 @@ class Home extends Component {
 
   // Fungsi untuk mendelete suatu layer
   handleSingleDelete = async () => {
+    var newThis = this;
     if (this.state.selectedFeature !== '') {
       await vector.getSource().removeFeature(this.state.selectedFeature);
       await map.removeInteraction(select);
@@ -994,6 +995,11 @@ class Home extends Component {
         condition: click,
       });
       await map.addInteraction(select);
+      select.on('select', function (event) {
+        newThis.setState({
+          selectedFeature: event.selected[0],
+        });
+      });
       await this.setState({
         selectedFeature: '',
       });
