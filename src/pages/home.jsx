@@ -285,20 +285,35 @@ class Home extends Component {
       maxZoom: 22,
     });
     map.setView(myView);
-
+    var mapCenterInfo;
     var extent = map.getView().calculateExtent(map.getSize());
-    var mapCenterInfo = {
-      map_type: this.state.mapTileLayer,
-      latitude_min: extent[3],
-      latitude_max: extent[1],
-      longitude_min: extent[0],
-      longitude_max: extent[2],
-      zoom: map.getView().getZoom(),
-      center: {
-        latitude: map.getView().getCenter()[1],
-        longitude: map.getView().getCenter()[0],
-      },
-    };
+    if (this.state.mapTileLayer === 'satelliteTest') {
+      mapCenterInfo = {
+        map_type: 'satellite',
+        latitude_min: extent[3],
+        latitude_max: extent[1],
+        longitude_min: extent[0],
+        longitude_max: extent[2],
+        zoom: map.getView().getZoom(),
+        center: {
+          latitude: map.getView().getCenter()[1],
+          longitude: map.getView().getCenter()[0],
+        },
+      };
+    } else {
+      mapCenterInfo = {
+        map_type: this.state.mapTileLayer,
+        latitude_min: extent[3],
+        latitude_max: extent[1],
+        longitude_min: extent[0],
+        longitude_max: extent[2],
+        zoom: map.getView().getZoom(),
+        center: {
+          latitude: map.getView().getCenter()[1],
+          longitude: map.getView().getCenter()[0],
+        },
+      };
+    }
     this.setState({
       mapCenter: mapCenterInfo,
       inputLat: map.getView().getCenter()[1],
@@ -354,6 +369,7 @@ class Home extends Component {
       maxZoom: 22,
     });
     layer.setSource(newLayer);
+
     this.setState({
       mapTileLayer: 'google',
     });
@@ -628,8 +644,38 @@ class Home extends Component {
     });
     map.renderSync();
 
+    var mapCenterInfo;
+    var extent = map.getView().calculateExtent(map.getSize());
+    if (this.state.mapTileLayer === 'satelliteTest') {
+      mapCenterInfo = {
+        map_type: 'satellite',
+        latitude_min: extent[3],
+        latitude_max: extent[1],
+        longitude_min: extent[0],
+        longitude_max: extent[2],
+        zoom: map.getView().getZoom(),
+        center: {
+          latitude: map.getView().getCenter()[1],
+          longitude: map.getView().getCenter()[0],
+        },
+      };
+    } else {
+      mapCenterInfo = {
+        map_type: this.state.mapTileLayer,
+        latitude_min: extent[3],
+        latitude_max: extent[1],
+        longitude_min: extent[0],
+        longitude_max: extent[2],
+        zoom: map.getView().getZoom(),
+        center: {
+          latitude: map.getView().getCenter()[1],
+          longitude: map.getView().getCenter()[0],
+        },
+      };
+    }
+
     // Fungsi untuk download map center info dalam format json
-    const json = await JSON.stringify(this.state.mapCenter, null, '  ');
+    const json = await JSON.stringify(mapCenterInfo, null, '  ');
     const blob = await new Blob([json], {
       type: 'application/json',
     });
@@ -687,21 +733,51 @@ class Home extends Component {
       base64Image = mapCanvas.toDataURL();
     }
 
+    var mapCenterInfo;
+    var extent = map.getView().calculateExtent(map.getSize());
+    if (this.state.mapTileLayer === 'satelliteTest') {
+      mapCenterInfo = {
+        map_type: 'satellite',
+        latitude_min: extent[3],
+        latitude_max: extent[1],
+        longitude_min: extent[0],
+        longitude_max: extent[2],
+        zoom: map.getView().getZoom(),
+        center: {
+          latitude: map.getView().getCenter()[1],
+          longitude: map.getView().getCenter()[0],
+        },
+      };
+    } else {
+      mapCenterInfo = {
+        map_type: this.state.mapTileLayer,
+        latitude_min: extent[3],
+        latitude_max: extent[1],
+        longitude_min: extent[0],
+        longitude_max: extent[2],
+        zoom: map.getView().getZoom(),
+        center: {
+          latitude: map.getView().getCenter()[1],
+          longitude: map.getView().getCenter()[0],
+        },
+      };
+    }
+
     await axios
       .post(
         'https://nisaetus-api.sumpahpalapa.com/api/v1/geo/building-locator',
         {
-          map_type: this.state.mapCenter.map_type,
+          map_type: mapCenterInfo.map_type,
           image_base64: base64Image,
           coordinates: {
-            latitude_min: this.state.mapCenter.latitude_min,
-            latitude_max: this.state.mapCenter.latitude_max,
-            longitude_min: this.state.mapCenter.longitude_min,
-            longitude_max: this.state.mapCenter.longitude_max,
-            zoom: this.state.mapCenter.zoom,
+            latitude_min: mapCenterInfo.latitude_min,
+            latitude_max: mapCenterInfo.latitude_max,
+            longitude_min: mapCenterInfo.longitude_min,
+            longitude_max: mapCenterInfo.longitude_max,
+            zoom: mapCenterInfo.zoom,
             center: {
-              latitude: this.state.mapCenter.center.latitude,
-              longitude: this.state.mapCenter.center.longitude,
+              latitude: mapCenterInfo.center.latitude,
+              longitude: mapCenterInfo.center.longitude,
             },
           },
         },
@@ -1412,6 +1488,26 @@ class Home extends Component {
                             Satelite
                           </span>
                         </div>
+                        {/* Satelite (GIS) Tile Layer Test*/}
+                        <div style={{ display: 'flex', padding: '0px' }}>
+                          <span
+                            className={
+                              this.state.mapTileLayer === 'satelliteTest'
+                                ? 'dropdown-item active'
+                                : 'dropdown-item'
+                            }
+                            onClick={this.handleChangeLayerSateliteTest}
+                          >
+                            <img
+                              src={SateliteLogo}
+                              width='25px'
+                              height='25px'
+                              alt=''
+                              style={{ marginRight: '15px', marginLeft: '0px' }}
+                            />
+                            Satelite (GMaps)
+                          </span>
+                        </div>
                         {/* Carto Tile Layer */}
                         <div style={{ display: 'flex', padding: '0px' }}>
                           <span
@@ -1450,26 +1546,6 @@ class Home extends Component {
                               style={{ marginRight: '15px', marginLeft: '0px' }}
                             />
                             Carto (GrayScale)
-                          </span>
-                        </div>
-                        {/* Satelite (GIS) Tile Layer Test*/}
-                        <div style={{ display: 'flex', padding: '0px' }}>
-                          <span
-                            className={
-                              this.state.mapTileLayer === 'satelliteTest'
-                                ? 'dropdown-item active'
-                                : 'dropdown-item'
-                            }
-                            onClick={this.handleChangeLayerSateliteTest}
-                          >
-                            <img
-                              src={SateliteLogo}
-                              width='25px'
-                              height='25px'
-                              alt=''
-                              style={{ marginRight: '15px', marginLeft: '0px' }}
-                            />
-                            Satelite Test
                           </span>
                         </div>
                       </div>
