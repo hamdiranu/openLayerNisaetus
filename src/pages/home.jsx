@@ -198,6 +198,7 @@ class Home extends Component {
     onDrawing: 'None',
     deleteProgress: 'offDelete',
     selectedFeature: '',
+    featureExist: false,
   };
 
   componentDidMount = async () => {
@@ -365,10 +366,25 @@ class Home extends Component {
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
       crossOrigin: 'anonymous',
       maxZoom: 22,
+      maxNativeZoom: 22,
     });
     layer.setSource(newLayer);
     this.setState({
       mapTileLayer: 'satellite',
+    });
+  };
+
+  // Fungsi untuk mengganti tile layer menjadi Satelite
+  handleChangeLayerSateliteTest = (e) => {
+    var newLayer = new XYZSource({
+      url: 'http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}',
+      crossOrigin: 'anonymous',
+      maxZoom: 22,
+      maxNativeZoom: 22,
+    });
+    layer.setSource(newLayer);
+    this.setState({
+      mapTileLayer: 'satelliteTest',
     });
   };
 
@@ -419,6 +435,7 @@ class Home extends Component {
     await this.setState({
       dataImportGeojson: newArr,
       geojsonfile: newArr,
+      featureExist: true,
     });
 
     var newFeatures = await new GeoJSON().readFeatures(newArr, {
@@ -512,6 +529,7 @@ class Home extends Component {
               type: 'FeatureCollection',
               features: oldGeojson,
             },
+            featureExist: true,
           });
         }
       });
@@ -718,6 +736,7 @@ class Home extends Component {
           updateGeojson: true,
           imageProcessing: false,
           showSnakeBar: true,
+          featureExist: true,
         });
 
         await setTimeout(() => {
@@ -847,6 +866,7 @@ class Home extends Component {
         url:
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
         crossOrigin: 'anonymous',
+        maxNativeZoom: 22,
       });
       layer.setSource(newLayer);
       this.setState({
@@ -947,6 +967,7 @@ class Home extends Component {
           imageProcessing: false,
           showSnakeBar: true,
           openModalInputProcess: false,
+          featureExist: true,
         });
 
         await setTimeout(() => {
@@ -1032,6 +1053,15 @@ class Home extends Component {
         },
       });
     }
+    if (this.state.geojsonfile.features.length === 0) {
+      await this.setState({
+        featureExist: false,
+      });
+    } else {
+      await this.setState({
+        featureExist: true,
+      });
+    }
   };
 
   // Fungsi untuk menutup fitur delete layer
@@ -1063,6 +1093,7 @@ class Home extends Component {
         features: [],
       },
       deleteProgress: 'onDeleteDis',
+      featureExist: false,
     });
 
     await map.removeInteraction(select);
@@ -1421,6 +1452,26 @@ class Home extends Component {
                             Carto (GrayScale)
                           </span>
                         </div>
+                        {/* Satelite (GIS) Tile Layer Test*/}
+                        <div style={{ display: 'flex', padding: '0px' }}>
+                          <span
+                            className={
+                              this.state.mapTileLayer === 'satelliteTest'
+                                ? 'dropdown-item active'
+                                : 'dropdown-item'
+                            }
+                            onClick={this.handleChangeLayerSateliteTest}
+                          >
+                            <img
+                              src={SateliteLogo}
+                              width='25px'
+                              height='25px'
+                              alt=''
+                              style={{ marginRight: '15px', marginLeft: '0px' }}
+                            />
+                            Satelite Test
+                          </span>
+                        </div>
                       </div>
                     </div>
                     {/* Button Image Processing */}
@@ -1729,16 +1780,35 @@ class Home extends Component {
               >
                 <span className='cancelClick'>Cancel</span>
               </div>
-              {/* ControlBar untuk delete layer */}
-              <div className='diffDeleteControl'>
-                <div
-                  className='deleteLayer'
-                  onClick={() => this.handleDelteControl()}
-                  title='Delete layers'
-                >
-                  <img src={controlDelete} width='30px' height='30px' alt='' />
+              {this.state.featureExist ? (
+                /* ControlBar untuk delete layer */
+                <div className='diffDeleteControl'>
+                  <div
+                    className='deleteLayer'
+                    onClick={() => this.handleDelteControl()}
+                    title='Delete layers'
+                  >
+                    <img
+                      src={controlDelete}
+                      width='30px'
+                      height='30px'
+                      alt=''
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* ControlBar untuk delete layer disable */
+                <div className='diffDeleteControlDis'>
+                  <div title='No layers exist'>
+                    <img
+                      src={controlDelete}
+                      width='30px'
+                      height='30px'
+                      alt=''
+                    />
+                  </div>
+                </div>
+              )}
               {/* Cancel ControlBar untuk delete layer */}
               <div className={this.state.deleteProgress} title='cancel delete'>
                 <div
