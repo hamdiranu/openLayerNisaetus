@@ -26,6 +26,7 @@ import controlPolygon from '../images/polygonremove.png';
 import controlPolyline from '../images/polylineremove.png';
 import controlCircle from '../images/circleremove.png';
 import controlPoint from '../images/pointremove.png';
+import controlDelete from '../images/trashBinRemove.png';
 
 import { UnControlled as CodeMirror } from 'react-codemirror2';
 import swal from 'sweetalert';
@@ -193,6 +194,7 @@ class Home extends Component {
     namaFileJson: '',
     mapCenter: {},
     onDrawing: 'None',
+    deleteProgress: 'offDelete',
   };
 
   componentDidMount = async () => {
@@ -513,6 +515,7 @@ class Home extends Component {
       map.addInteraction(draw);
       this.setState({
         onDrawing: value,
+        deleteProgress: 'offDelete',
       });
     }
   };
@@ -524,7 +527,7 @@ class Home extends Component {
     });
     setTimeout(() => {
       this.setState({ onDrawing: 'None' });
-    }, 2000);
+    }, 1000);
   };
 
   // Fungsi untuk mengeluarkan alert input nama file
@@ -715,7 +718,7 @@ class Home extends Component {
 
         await setTimeout(() => {
           this.setState({ showSnakeBar: false });
-        }, 2000);
+        }, 1000);
       })
       .catch((error) => {
         console.log(error);
@@ -944,11 +947,38 @@ class Home extends Component {
 
         await setTimeout(() => {
           this.setState({ showSnakeBar: false });
-        }, 2000);
+        }, 1000);
       })
       .catch((error) => {
         console.log(error);
       });
+  };
+
+  handleDelteControl = () => {
+    map.removeInteraction(draw);
+    this.setState({
+      deleteProgress: 'onDelete',
+      onDrawing: 'None',
+    });
+  };
+
+  handleCancelDelete = () => {
+    this.setState({
+      deleteProgress: 'onDeleteDis',
+    });
+    setTimeout(() => {
+      this.setState({ deleteProgress: 'offDelete' });
+    }, 1000);
+  };
+
+  handleDeleteAll = async () => {
+    await vectorSource.clear();
+    await this.setState({
+      geojsonfile: {
+        type: 'FeatureCollection',
+        features: [],
+      },
+    });
   };
 
   render() {
@@ -1563,6 +1593,7 @@ class Home extends Component {
                   </Form.Field>{' '}
                 </Form.Group>{' '}
               </Form>
+              {/* ControlBar */}
               <div className='olControlBar'>
                 <div
                   className='drawPolyline'
@@ -1598,12 +1629,43 @@ class Home extends Component {
                   <img src={controlPoint} width='30px' height='30px' alt='' />
                 </div>
               </div>
+              {/* cancelControlBar */}
               <div
                 className={this.state.onDrawing}
                 onClick={this.handleCancelDraw}
                 title='cancel drawing'
               >
                 <span className='cancelClick'>Cancel</span>
+              </div>
+              {/* ControlBar untuk delete layer */}
+              <div className='diffDeleteControl'>
+                <div
+                  className='deleteLayer'
+                  onClick={() => this.handleDelteControl()}
+                  title='Delete layers'
+                >
+                  <img src={controlDelete} width='30px' height='30px' alt='' />
+                </div>
+              </div>
+              {/* Cancel ControlBar untuk delete layer */}
+              <div className={this.state.deleteProgress} title='cancel delete'>
+                <div className='deleteSingleLayer' title='Delete single layer'>
+                  <span>Delete</span>
+                </div>
+                <div
+                  className='cancelDeleteLayer'
+                  title='Cancel delete layer'
+                  onClick={this.handleCancelDelete}
+                >
+                  <span>Cancel</span>
+                </div>
+                <div
+                  className='deleteAllLayer'
+                  title='Delete all layer'
+                  onClick={this.handleDeleteAll}
+                >
+                  <span>Clear All</span>
+                </div>
               </div>
               <div id='controlSearch'></div>
             </div>

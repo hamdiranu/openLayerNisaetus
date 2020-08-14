@@ -399,15 +399,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadein 2s;
+  -webkit-animation: fadein 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadein 2s;
+  -moz-animation: fadein 1s;
   /* Firefox < 16 */
-  -ms-animation: fadein 2s;
+  -ms-animation: fadein 1s;
   /* Internet Explorer */
-  -o-animation: fadein 2s;
+  -o-animation: fadein 1s;
   /* Opera < 12.1 */
-  animation: fadein 2s;
+  animation: fadein 1s;
 }
 
 .LineString:hover {
@@ -432,15 +432,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadeout 2s;
+  -webkit-animation: fadeout 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadeout 2s;
+  -moz-animation: fadeout 1s;
   /* Firefox < 16 */
-  -ms-animation: fadeout 2s;
+  -ms-animation: fadeout 1s;
   /* Internet Explorer */
-  -o-animation: fadeout 2s;
+  -o-animation: fadeout 1s;
   /* Opera < 12.1 */
-  animation: fadeout 2s;
+  animation: fadeout 1s;
 }
 
 .LineStringDis:hover {
@@ -465,15 +465,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadein 2s;
+  -webkit-animation: fadein 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadein 2s;
+  -moz-animation: fadein 1s;
   /* Firefox < 16 */
-  -ms-animation: fadein 2s;
+  -ms-animation: fadein 1s;
   /* Internet Explorer */
-  -o-animation: fadein 2s;
+  -o-animation: fadein 1s;
   /* Opera < 12.1 */
-  animation: fadein 2s;
+  animation: fadein 1s;
 }
 
 .Polygon:hover {
@@ -498,15 +498,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadeout 2s;
+  -webkit-animation: fadeout 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadeout 2s;
+  -moz-animation: fadeout 1s;
   /* Firefox < 16 */
-  -ms-animation: fadeout 2s;
+  -ms-animation: fadeout 1s;
   /* Internet Explorer */
-  -o-animation: fadeout 2s;
+  -o-animation: fadeout 1s;
   /* Opera < 12.1 */
-  animation: fadeout 2s;
+  animation: fadeout 1s;
 }
 
 .PolygonDis:hover {
@@ -531,15 +531,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadein 2s;
+  -webkit-animation: fadein 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadein 2s;
+  -moz-animation: fadein 1s;
   /* Firefox < 16 */
-  -ms-animation: fadein 2s;
+  -ms-animation: fadein 1s;
   /* Internet Explorer */
-  -o-animation: fadein 2s;
+  -o-animation: fadein 1s;
   /* Opera < 12.1 */
-  animation: fadein 2s;
+  animation: fadein 1s;
 }
 
 .Circle:hover {
@@ -564,15 +564,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadeout 2s;
+  -webkit-animation: fadeout 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadeout 2s;
+  -moz-animation: fadeout 1s;
   /* Firefox < 16 */
-  -ms-animation: fadeout 2s;
+  -ms-animation: fadeout 1s;
   /* Internet Explorer */
-  -o-animation: fadeout 2s;
+  -o-animation: fadeout 1s;
   /* Opera < 12.1 */
-  animation: fadeout 2s;
+  animation: fadeout 1s;
 }
 
 .CircleDis:hover {
@@ -597,15 +597,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadein 2s;
+  -webkit-animation: fadein 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadein 2s;
+  -moz-animation: fadein 1s;
   /* Firefox < 16 */
-  -ms-animation: fadein 2s;
+  -ms-animation: fadein 1s;
   /* Internet Explorer */
-  -o-animation: fadein 2s;
+  -o-animation: fadein 1s;
   /* Opera < 12.1 */
-  animation: fadein 2s;
+  animation: fadein 1s;
 }
 
 .Point:hover {
@@ -630,15 +630,15 @@ i.inverted.circular.icon.notValidDownload:hover {
   font-weight: 500;
   cursor: pointer;
   transition: 0.35s;
-  -webkit-animation: fadeout 2s;
+  -webkit-animation: fadeout 1s;
   /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadeout 2s;
+  -moz-animation: fadeout 1s;
   /* Firefox < 16 */
-  -ms-animation: fadeout 2s;
+  -ms-animation: fadeout 1s;
   /* Internet Explorer */
-  -o-animation: fadeout 2s;
+  -o-animation: fadeout 1s;
   /* Opera < 12.1 */
-  animation: fadeout 2s;
+  animation: fadeout 1s;
 }
 
 .PointDis:hover {
@@ -679,4 +679,111 @@ i.inverted.circular.icon.notValidDownload:hover {
   overflow-y: auto;
   box-shadow: 0 1px 7px rgba(0, 0, 0, .8);
   transition: max-height .3s ease-in;
+}
+
+.diffDeleteControl {
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+  border-radius: 4px;
+  position: absolute;
+  top: 238px;
+  right: 16.5px;
+  background-color: white;
+}
+
+.deleteLayer {
+  cursor: pointer;
+}
+
+.offDelete {
+  display: none;
+}
+
+.onDelete {
+  position: absolute;
+  display: flex;
+  padding: 0px;
+  height: 30px;
+  width: 204px;
+  top: 238px;
+  right: 48px;
+  text-align: center;
+  background-color: #919187;
+  border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.35s;
+  -webkit-animation: fadein 1s;
+  /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 1s;
+  /* Firefox < 16 */
+  -ms-animation: fadein 1s;
+  /* Internet Explorer */
+  -o-animation: fadein 1s;
+  /* Opera < 12.1 */
+  animation: fadein 1s;
+}
+
+.onDeleteDis {
+  position: absolute;
+  display: flex;
+  height: 30px;
+  width: 204px;
+  top: 238px;
+  right: 48px;
+  text-align: center;
+  background-color: #919187;
+  padding: 0px;
+  border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.35s;
+  -webkit-animation: fadeout 1s;
+  /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadeout 1s;
+  /* Firefox < 16 */
+  -ms-animation: fadeout 1s;
+  /* Internet Explorer */
+  -o-animation: fadeout 1s;
+  /* Opera < 12.1 */
+  animation: fadeout 1s;
+}
+
+.deleteSingleLayer {
+  padding: 4px 10px;
+}
+
+.deleteSingleLayer:hover {
+  color: black;
+  font-weight: 500;
+  background-color: #a0a098;
+  transition: 0.35s;
+  border-radius: 4px;
+}
+
+.cancelDeleteLayer {
+  padding: 4px 10px;
+}
+
+.cancelDeleteLayer:hover {
+  color: black;
+  font-weight: 500;
+  background-color: #a0a098;
+  transition: 0.35s;
+  border-radius: 4px;
+}
+
+.deleteAllLayer {
+  padding: 4px 10px;
+}
+
+.deleteAllLayer:hover {
+  color: black;
+  font-weight: 500;
+  background-color: #a0a098;
+  transition: 0.35s;
+  border-radius: 4px;
 }
