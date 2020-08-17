@@ -27,6 +27,8 @@ import controlPolyline from '../images/polylineremove.png';
 import controlCircle from '../images/circleremove.png';
 import controlPoint from '../images/pointremove.png';
 import controlDelete from '../images/trashBinRemove.png';
+import fullScreenOn from '../images/fullScreenOn.png';
+import fullScreenOff from '../images/fullScreenOff.png';
 
 import { UnControlled as CodeMirror } from 'react-codemirror2';
 import swal from 'sweetalert';
@@ -52,7 +54,6 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import Geocoder from 'ol-geocoder';
 import OSM from 'ol/source/OSM';
-import { click } from 'ol/events/condition';
 
 var map;
 var draw;
@@ -162,6 +163,16 @@ var vector = new VectorLayer({
   style: styleFunction,
 });
 
+var highlightStyle = new Style({
+  fill: new Fill({
+    color: 'rgba(255,255,255,0.7)',
+  }),
+  stroke: new Stroke({
+    color: '#3399CC',
+    width: 3,
+  }),
+});
+
 class Home extends Component {
   state = {
     inputLat: -2.5040852618529215,
@@ -197,8 +208,9 @@ class Home extends Component {
     mapCenter: {},
     onDrawing: 'None',
     deleteProgress: 'offDelete',
-    selectedFeature: '',
+    selectedFeature: [],
     featureExist: false,
+    fullScreenMode: true,
   };
 
   componentDidMount = async () => {
@@ -243,6 +255,11 @@ class Home extends Component {
     await a.appendChild(htmlObject);
 
     // Fitur Edit Polygon
+    this.onModifyEnd();
+  };
+
+  // Fitur Edit Polygon
+  onModifyEnd = async () => {
     var newThis = await this;
     await modify.on('modifyend', async function (e) {
       var writer = await new GeoJSON();
@@ -516,7 +533,16 @@ class Home extends Component {
 
   // Fungsi untuk menggambar feature pada map
   handleDrawControl = async (value) => {
-    map.removeInteraction(draw);
+    await map.removeInteraction(draw);
+    await map.removeInteraction(modify);
+
+    modify = await new Modify({
+      features: select.getFeatures(),
+    });
+
+    await map.addInteraction(modify);
+    // Fitur Edit Polygon
+    await this.onModifyEnd();
     if (value !== 'None') {
       var oldGeojson = this.state.geojsonfile.features;
       var newthis = this;
@@ -566,6 +592,22 @@ class Home extends Component {
     setTimeout(() => {
       this.setState({ onDrawing: 'None' });
     }, 1000);
+
+    map.removeInteraction(select);
+    map.removeInteraction(modify);
+
+    select = new Select({
+      wrapX: false,
+    });
+    map.addInteraction(select);
+
+    modify = new Modify({
+      features: select.getFeatures(),
+    });
+
+    map.addInteraction(modify);
+    // Fitur Edit Polygon
+    this.onModifyEnd();
   };
 
   // Fungsi untuk mengeluarkan alert input nama file
@@ -1056,50 +1098,66 @@ class Home extends Component {
   };
 
   // Fungsi untuk membuka fitur delete layer
-  handleDelteControl = () => {
-    map.removeInteraction(draw);
-    map.removeInteraction(select);
-    this.setState({
+  handleDelteControl = async () => {
+    await map.removeInteraction(draw);
+    await map.removeInteraction(select);
+    select = await new Select({
+      wrapX: false,
+    });
+    await map.addInteraction(select);
+    await map.removeInteraction(modify);
+    await this.setState({
       deleteProgress: 'onDelete',
+      selectedFeature: [],
     });
-    this.setState({
-      onDrawing: this.state.onDrawing + 'Dis',
-    });
-    setTimeout(() => {
-      this.setState({ onDrawing: 'None' });
-    }, 1000);
-    var newThis = this;
-    // select interaction working on "click"
-    select = new Select({
-      condition: click,
-    });
-    map.addInteraction(select);
-    select.on('select', function (event) {
-      newThis.setState({
-        selectedFeature: event.selected[0],
+    if (this.state.onDrawing !== 'None') {
+      await this.setState({
+        onDrawing: this.state.onDrawing + 'Dis',
       });
+    }
+    setTimeout(async () => {
+      await this.setState({ onDrawing: 'None' });
+    }, 1000);
+
+    await this.onMultiSelect();
+  };
+
+  //Fungsi Multi Select
+  onMultiSelect = () => {
+    var newThis = this;
+    map.on('singleclick', function (e) {
+      if (newThis.state.deleteProgress === 'onDelete') {
+        map.forEachFeatureAtPixel(e.pixel, function (f) {
+          var selIndex = newThis.state.selectedFeature.indexOf(f);
+          if (selIndex < 0) {
+            newThis.state.selectedFeature.push(f);
+            f.setStyle(highlightStyle);
+          } else {
+            newThis.state.selectedFeature.splice(selIndex, 1);
+            f.setStyle(undefined);
+          }
+        });
+        console.log('cek deleted feature', newThis.state.selectedFeature);
+      }
     });
   };
 
   // Fungsi untuk mendelete suatu layer
   handleSingleDelete = async () => {
-    var newThis = this;
-    if (this.state.selectedFeature !== '') {
-      await vector.getSource().removeFeature(this.state.selectedFeature);
+    var listDeleteFeature = await this.state.selectedFeature;
+    await console.log('cek list state', this.state.selectedFeature);
+    await console.log('cek list function', listDeleteFeature);
+    if (listDeleteFeature.length !== 0) {
+      for (let b = 0; b < listDeleteFeature.length; b++) {
+        await vector.getSource().removeFeature(listDeleteFeature[b]);
+      }
       await map.removeInteraction(select);
       // select interaction working on "click"
       select = await new Select({
-        condition: click,
+        wrapX: false,
       });
       await map.addInteraction(select);
-      select.on('select', function (event) {
-        newThis.setState({
-          selectedFeature: event.selected[0],
-        });
-      });
-      await this.setState({
-        selectedFeature: '',
-      });
+
       var writer = await new GeoJSON();
       var updatedGeoJSON = await [];
 
@@ -1127,7 +1185,11 @@ class Home extends Component {
           type: 'FeatureCollection',
           features: updatedGeoJSON,
         },
+        selectedFeature: [],
       });
+    }
+    if (this.state.geojsonfile.features.length === 0) {
+      this.handleCancelDelete();
     }
     if (this.state.geojsonfile.features.length === 0) {
       await this.setState({
@@ -1142,19 +1204,38 @@ class Home extends Component {
 
   // Fungsi untuk menutup fitur delete layer
   handleCancelDelete = () => {
-    this.setState({
+    this.cancleFunction();
+  };
+
+  cancleFunction = async () => {
+    if (vectorSource.getFeatures().length !== 0) {
+      for (let l = 0; l < vectorSource.getFeatures().length; l++) {
+        await vectorSource.getFeatures()[l].setStyle(undefined);
+      }
+    }
+    await this.setState({
       deleteProgress: 'onDeleteDis',
+      selectedFeature: [],
     });
-    setTimeout(() => {
-      this.setState({ deleteProgress: 'offDelete' });
+    setTimeout(async () => {
+      await this.setState({ deleteProgress: 'offDelete' });
     }, 1000);
 
-    map.removeInteraction(select);
+    await map.removeInteraction(select);
+    await map.removeInteraction(modify);
 
-    select = new Select({
+    select = await new Select({
       wrapX: false,
     });
-    map.addInteraction(select);
+    await map.addInteraction(select);
+
+    modify = await new Modify({
+      features: select.getFeatures(),
+    });
+
+    await map.addInteraction(modify);
+    // Fitur Edit Polygon
+    await this.onModifyEnd();
   };
 
   // Fungsi untuk mendelete semua feature
@@ -1170,6 +1251,7 @@ class Home extends Component {
       },
       deleteProgress: 'onDeleteDis',
       featureExist: false,
+      selectedFeature: [],
     });
 
     await map.removeInteraction(select);
@@ -1180,12 +1262,24 @@ class Home extends Component {
     await map.addInteraction(select);
   };
 
+  // Fungsi untuk mengubah mode full screen
+  handleFullScreen = () => {
+    if (this.state.fullScreenMode === true) {
+      this.setState({ fullScreenMode: false });
+    } else {
+      this.setState({ fullScreenMode: true });
+    }
+  };
+
   render() {
     const codeString = JSON.stringify(this.state.geojsonfile, null, '  ');
     return (
       <Grid>
         <Grid.Row className='containerRowHome' columns={2}>
-          <Grid.Column className='colMaps' width={12}>
+          <Grid.Column
+            className='colMaps'
+            width={this.state.fullScreenMode ? 16 : 12}
+          >
             <div className='checkSnackBar'>
               <ReactSnackBar
                 Icon={<AiFillCheckCircle />}
@@ -1485,7 +1579,7 @@ class Home extends Component {
                               alt=''
                               style={{ marginRight: '15px', marginLeft: '0px' }}
                             />
-                            Satelite
+                            Satellite (ArcGIS)
                           </span>
                         </div>
                         {/* Satelite (GIS) Tile Layer Test*/}
@@ -1505,7 +1599,7 @@ class Home extends Component {
                               alt=''
                               style={{ marginRight: '15px', marginLeft: '0px' }}
                             />
-                            Satelite (GMaps)
+                            Satellite (GMaps)
                           </span>
                         </div>
                         {/* Carto Tile Layer */}
@@ -1580,7 +1674,11 @@ class Home extends Component {
                             </ReactButton>
                           </span>
                           <div
-                            className='dropdown-menu dropdownMenu dropdownSettingMenu'
+                            className={
+                              this.state.fullScreenMode
+                                ? 'dropdown-menu dropdownMenu dropdownSettingMenuFull'
+                                : 'dropdown-menu dropdownMenu dropdownSettingMenu'
+                            }
                             aria-labelledby='dropdownMenuLink'
                           >
                             {/* Direct Process Mode */}
@@ -1766,7 +1864,14 @@ class Home extends Component {
               </Navbar>
             </div>
             <div className='divMaps'>
-              <div id='mapContainer'></div>
+              {this.state.fullScreenMode ? (
+                <div id='mapContainer' style={{ width: '100vw' }}></div>
+              ) : (
+                <div
+                  id='mapContainer'
+                  style={{ width: 'calc(75vw - 8px)' }}
+                ></div>
+              )}
               {/* Form untuk mengganti latitude maps */}{' '}
               <Form className='formInputLat' onSubmit={this.handleSubmit}>
                 <Form.Group>
@@ -1909,20 +2014,57 @@ class Home extends Component {
                   <span>Clear All</span>
                 </div>
               </div>
+              {/* Control untuk mode fullScreen */}
+              {this.state.fullScreenMode ? (
+                /* ControlBar untuk delete layer */
+                <div className='fullScreenControlToOff'>
+                  <div
+                    className='fullSceenMode'
+                    onClick={() => this.handleFullScreen()}
+                    title='Mode Full Screen'
+                  >
+                    <img
+                      src={fullScreenOff}
+                      width='22px'
+                      height='22px'
+                      alt=''
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* ControlBar untuk delete layer disable */
+                <div className='fullScreenControlToOn'>
+                  <div
+                    className='fullSceenMode'
+                    onClick={() => this.handleFullScreen()}
+                    title='Mode Editor'
+                  >
+                    <img src={fullScreenOn} width='22px' height='22px' alt='' />
+                  </div>
+                </div>
+              )}
+              {/* Control for search location */}
               <div id='controlSearch'></div>
             </div>
           </Grid.Column>{' '}
-          <Grid.Column className='colCode' width={4}>
-            <CodeMirror
-              className='codeDisplay'
-              value={codeString}
-              options={{
-                mode: 'xml',
-                theme: 'material',
-                lineNumbers: true,
-              }}
-              onChange={(editor, data, value) => {}}
-            />{' '}
+          <Grid.Column
+            className='colCode'
+            width={this.state.fullScreenMode ? 0 : 4}
+          >
+            {this.state.fullScreenMode ? (
+              <div></div>
+            ) : (
+              <CodeMirror
+                className='codeDisplay'
+                value={codeString}
+                options={{
+                  mode: 'xml',
+                  theme: 'material',
+                  lineNumbers: true,
+                }}
+                onChange={(editor, data, value) => {}}
+              />
+            )}
           </Grid.Column>{' '}
         </Grid.Row>{' '}
       </Grid>

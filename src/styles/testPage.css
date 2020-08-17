@@ -65,6 +65,12 @@
     padding: 10px 0px;
 }
 
+.dropdownSettingMenuFull {
+    left: -67px !important;
+    top: 44px;
+    padding: 10px 0px;
+}
+
 .dropdown-item {
     cursor: pointer;
     padding: 10px 20px 8px 20px;
