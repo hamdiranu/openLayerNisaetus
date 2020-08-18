@@ -2,9 +2,6 @@
 
 FROM node:13.7.0-alpine3.10 as builder
 
-# ARG REACT_APP_GOOGLE_KEY=xxx.xxx.xxx.xxx
-# ENV REACT_APP_GOOGLE_KEY=$REACT_APP_GOOGLE_KEY
-
 WORKDIR '/app'
 
 COPY ./package.json ./
