@@ -2047,25 +2047,26 @@ class Home extends Component {
               <div id='controlSearch'></div>
             </div>
           </Grid.Column>{' '}
-          <Grid.Column
-            className='colCode'
-            width={this.state.fullScreenMode ? 0 : 4}
-          >
-            {this.state.fullScreenMode ? (
-              <div></div>
-            ) : (
-              <CodeMirror
-                className='codeDisplay'
-                value={codeString}
-                options={{
-                  mode: 'xml',
-                  theme: 'material',
-                  lineNumbers: true,
-                }}
-                onChange={(editor, data, value) => {}}
-              />
-            )}
-          </Grid.Column>{' '}
+          {this.state.fullScreenMode ? (
+            <div></div>
+          ) : (
+            <Grid.Column className='colCode' width={4}>
+              {this.state.fullScreenMode ? (
+                <div></div>
+              ) : (
+                <CodeMirror
+                  className='codeDisplay'
+                  value={codeString}
+                  options={{
+                    mode: 'xml',
+                    theme: 'material',
+                    lineNumbers: true,
+                  }}
+                  onChange={(editor, data, value) => {}}
+                />
+              )}
+            </Grid.Column>
+          )}
         </Grid.Row>{' '}
       </Grid>
     );
