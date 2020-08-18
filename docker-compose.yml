@@ -1,0 +1,11 @@
+version: '3.2'
+
+services:
+  spartech_picterra_web:
+    # How to
+    # restart: always
+    # COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker build -t hamdiranu/spartech-web-app:latest ./
+    image: 'hamdiranu/spartech-web-app:latest'
+    restart: always
+    ports:
+      - '3100:3000'
