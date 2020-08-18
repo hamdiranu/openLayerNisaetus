@@ -1203,8 +1203,10 @@ class Home extends Component {
   };
 
   // Fungsi untuk menutup fitur delete layer
-  handleCancelDelete = () => {
-    this.cancleFunction();
+  handleCancelDelete = async () => {
+    await this.cancleFunction();
+    await this.handleDelteControl();
+    await this.cancleFunction();
   };
 
   cancleFunction = async () => {
